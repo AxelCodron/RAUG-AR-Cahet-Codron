@@ -55,6 +55,8 @@ function init() {
       loader.load('flask.glb', (gltf) => {
         model = gltf.scene;
 
+        model.scale.set(0.01, 0.01, 0.01);
+
         scene.add(model);
 
         model.traverse(function (object) {
