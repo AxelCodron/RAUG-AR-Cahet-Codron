@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 let container;
 let camera, scene, renderer;
@@ -13,6 +14,8 @@ let hitTestSourceRequested = false;
 init();
 
 function init() {
+
+  const loader = new GLTFLoader().setPath('/RAUG-Cahet-Codron/assets/models/');
 
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -46,11 +49,22 @@ function init() {
 
     if (reticle.visible) {
 
-      const material = new THREE.MeshPhongMaterial({ color: 0xffffff * Math.random() });
-      const mesh = new THREE.Mesh(geometry, material);
-      reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-      mesh.scale.y = Math.random() * 2 + 1;
-      scene.add(mesh);
+      // Load a glTF resource
+      loader.load('flask.glb', (gltf) => {
+        model = gltf.scene;
+
+        scene.add(model);
+
+        model.traverse(function (object) {
+          if (object.isMesh) object.castShadow = true;
+        });
+      });
+
+      // const material = new THREE.MeshPhongMaterial({ color: 0xffffff * Math.random() });
+      // const mesh = new THREE.Mesh(geometry, material);
+      // reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+      // mesh.scale.y = Math.random() * 2 + 1;
+      // scene.add(mesh);
 
     }
 
