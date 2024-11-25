@@ -55,7 +55,10 @@ function init() {
       loader.load('flask.glb', (gltf) => {
         model = gltf.scene;
 
-        model.scale.set(0.01, 0.01, 0.01);
+        reticle.matrix.decompose(model.position, model.quaternion, model.scale);
+        model.scale.x = 0.2;
+        model.scale.y = 0.2;
+        model.scale.z = 0.2;
 
         scene.add(model);
 
@@ -63,15 +66,7 @@ function init() {
           if (object.isMesh) object.castShadow = true;
         });
       });
-
-      // const material = new THREE.MeshPhongMaterial({ color: 0xffffff * Math.random() });
-      // const mesh = new THREE.Mesh(geometry, material);
-      // reticle.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
-      // mesh.scale.y = Math.random() * 2 + 1;
-      // scene.add(mesh);
-
     }
-
   }
 
   controller = renderer.xr.getController(0);
