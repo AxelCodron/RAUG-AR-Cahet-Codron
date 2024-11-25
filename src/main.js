@@ -11,11 +11,13 @@ let reticle;
 let hitTestSource = null;
 let hitTestSourceRequested = false;
 
+let model
+
 init();
 
 function init() {
 
-  const loader = new GLTFLoader().setPath('/RAUG-Cahet-Codron/assets/models/');
+  const loader = new GLTFLoader().setPath('/RAUG-AR-Cahet-Codron/assets/models/');
 
   container = document.createElement('div');
   document.body.appendChild(container);
