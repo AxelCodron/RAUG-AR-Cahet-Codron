@@ -11,7 +11,9 @@ let reticle;
 let hitTestSource = null;
 let hitTestSourceRequested = false;
 
-let model
+let model;
+
+let loadedFlask, loadedTube, loadedGlassBottle = false;
 
 init();
 
@@ -50,24 +52,100 @@ function init() {
   function onSelect() {
 
     if (reticle.visible) {
+      if (!loadedFlask) {
+        // Load the flask
+        loader.load('flask.glb', (gltf) => {
+          model = gltf.scene;
 
-      // Load the flask
-      loader.load('flask.glb', (gltf) => {
-        model = gltf.scene;
+          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
 
-        reticle.matrix.decompose(model.position, model.quaternion, model.scale);
+          // Scale the model
+          model.scale.x = 0.1;
+          model.scale.y = 0.1;
+          model.scale.z = 0.1;
 
-        // Scale the model
-        model.scale.x = 0.1;
-        model.scale.y = 0.1;
-        model.scale.z = 0.1;
+          scene.add(model);
 
-        scene.add(model);
+          loadedFlask = true;
 
-        model.traverse(function (object) {
-          if (object.isMesh) object.castShadow = true;
+          model.traverse(function (object) {
+            if (object.isMesh) object.castShadow = true;
+          });
         });
-      });
+      }
+      else if (!loadedTube) {
+        // Load the tube
+        loader.load('tube.glb', (gltf) => {
+          model = gltf.scene;
+
+          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
+
+          // Scale the model
+          model.scale.x = 0.1;
+          model.scale.y = 0.1;
+          model.scale.z = 0.1;
+
+          scene.add(model);
+
+          loadedTube = true;
+
+          model.traverse(function (object) {
+            if (object.isMesh) object.castShadow = true;
+          });
+        });
+      }
+      else if (!loadedGlassBottle) {
+        // Load the glass bottle
+        loader.load('glass-bottle.glb', (gltf) => {
+          model = gltf.scene;
+
+          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
+
+          // Scale the model
+          model.scale.x = 0.05;
+          model.scale.y = 0.05;
+          model.scale.z = 0.05;
+
+          scene.add(model);
+
+          loadedGlassBottle = true;
+
+          model.traverse(function (object) {
+            if (object.isMesh) object.castShadow = true;
+          });
+        });
+      }
+      else {
+        const model = scene.children[3];
+
+        const duration = 3000;
+        const wiggleFrequency = 100;
+        const baseScale = 0.1;
+        const wiggleAmplitude = 0.01;
+        const startTime = performance.now();
+
+        let lastFrameTime = startTime;
+
+        function wiggle() {
+          const currentTime = performance.now();
+          const elapsedTime = currentTime - startTime;
+
+          if (elapsedTime < duration) {
+            if (currentTime - lastFrameTime >= wiggleFrequency) {
+              lastFrameTime = currentTime;
+              const scaleFactor = baseScale +
+                wiggleAmplitude * Math.sin((elapsedTime / 1000) * wiggleFrequency * 2 * Math.PI);
+              model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            }
+
+            requestAnimationFrame(wiggle);
+          } else {
+            model.scale.set(baseScale, baseScale, baseScale);
+          }
+        }
+
+        wiggle();
+      }
     }
   }
 
