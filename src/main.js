@@ -51,14 +51,16 @@ function init() {
 
     if (reticle.visible) {
 
-      // Load a glTF resource
+      // Load the flask
       loader.load('flask.glb', (gltf) => {
         model = gltf.scene;
 
         reticle.matrix.decompose(model.position, model.quaternion, model.scale);
-        model.scale.x = 0.2;
-        model.scale.y = 0.2;
-        model.scale.z = 0.2;
+
+        // Scale the model
+        model.scale.x = 0.1;
+        model.scale.y = 0.1;
+        model.scale.z = 0.1;
 
         scene.add(model);
 
