@@ -15,20 +15,12 @@ let model;
 
 let loadedFlask, loadedTube, loadedGlassBottle = false;
 
-// Define button materials and geometry
-const buttonGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.05);
-const buttonMaterials = [
-  new THREE.MeshBasicMaterial({ color: 0xff0000 }), // Red
-  new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // Green
-  new THREE.MeshBasicMaterial({ color: 0x0000ff }), // Blue
-];
-
-const buttons = [];
-const buttonPositions = [
-  { x: -0.5, y: -1.2, z: -2 }, // Left button
-  { x: 0, y: -1.2, z: -2 },    // Center button
-  { x: 0.5, y: -1.2, z: -2 },  // Right button
-];
+let currentSelectedModel = null;
+let modelsTouched = {
+  flask: false,
+  tube: false,
+  glassBottle: false
+};
 
 init();
 
@@ -62,174 +54,141 @@ function init() {
 
   //
 
-  // Raycaster for interaction
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-
-  function onPointerDown(event) {
-    // Convert touch/mouse coordinates to normalized device coordinates (-1 to 1)
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // Cast a ray from the camera
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(buttons);
-
-    if (intersects.length > 0) {
-      const clickedButton = intersects[0].object;
-
-      if (clickedButton.material.color.getHex() === 0xff0000) {
-        console.log('Red button pressed!');
-        console.log(clickedButton.material.color.getHex());
-        clickedButton.material.color.set(0xffffff);
-        console.log(clickedButton.material.color.getHex())
-      } else if (clickedButton.material.color.getHex() === 0x00ff00) {
-        console.log('Green button pressed!');
-        clickedButton.material.color.set(0x000000);
-      } else if (clickedButton.material.color.getHex() === 0x0000ff) {
-        console.log('Blue button pressed!');
-        clickedButton.material.color.set(0xffff00);
-      }
-    }
-  }
-
-  // Add buttons to the scene
-  buttonPositions.forEach((pos, index) => {
-    const button = new THREE.Mesh(buttonGeometry, buttonMaterials[index]);
-    // Set the position relative to the camera's initial position
-    button.position.set(pos.x, pos.y, -2);
-    camera.add(button);
-    buttons.push(button);
-  });
-
-  scene.add(camera);
-
-  function onPointerDown(event) {
-    // Convert touch/mouse coordinates to normalized device coordinates (-1 to 1)
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    // Cast a ray from the camera
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(buttons);
-
-    if (intersects.length > 0) {
-      const clickedButton = intersects[0].object;
-
-      if (clickedButton.material.color.getHex() === 0xff0000) {
-        console.log('Red button pressed!');
-      } else if (clickedButton.material.color.getHex() === 0x00ff00) {
-        console.log('Green button pressed!');
-      } else if (clickedButton.material.color.getHex() === 0x0000ff) {
-        console.log('Blue button pressed!');
-      }
-    }
-  }
-
-  // Add event listener for user input
-  window.addEventListener('pointerdown', onPointerDown);
-
-  //
-
   function onSelect() {
-
     if (reticle.visible) {
+      let currentModel;
+      let baseScale;
+      let modelType;
+
+      // Load models as before, but add a unique identifier
       if (!loadedFlask) {
-        // Load the flask
         loader.load('flask.glb', (gltf) => {
-          model = gltf.scene;
-
-          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
-
-          // Scale the model
-          model.scale.x = 0.1;
-          model.scale.y = 0.1;
-          model.scale.z = 0.1;
-
-          scene.add(model);
-
-          loadedFlask = true;
-
-          model.traverse(function (object) {
-            if (object.isMesh) object.castShadow = true;
-          });
+          currentModel = gltf.scene;
+          baseScale = 0.1;
+          modelType = 'flask';
+          setupModel(currentModel, baseScale, modelType);
         });
       }
       else if (!loadedTube) {
-        // Load the tube
         loader.load('tube.glb', (gltf) => {
-          model = gltf.scene;
-
-          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
-
-          // Scale the model
-          model.scale.x = 0.1;
-          model.scale.y = 0.1;
-          model.scale.z = 0.1;
-
-          scene.add(model);
-
-          loadedTube = true;
-
-          model.traverse(function (object) {
-            if (object.isMesh) object.castShadow = true;
-          });
+          currentModel = gltf.scene;
+          baseScale = 0.1;
+          modelType = 'tube';
+          setupModel(currentModel, baseScale, modelType);
         });
       }
       else if (!loadedGlassBottle) {
-        // Load the glass bottle
         loader.load('glass-bottle.glb', (gltf) => {
-          model = gltf.scene;
-
-          reticle.matrix.decompose(model.position, model.quaternion, model.scale);
-
-          // Scale the model
-          model.scale.x = 0.05;
-          model.scale.y = 0.05;
-          model.scale.z = 0.05;
-
-          scene.add(model);
-
-          loadedGlassBottle = true;
-
-          model.traverse(function (object) {
-            if (object.isMesh) object.castShadow = true;
-          });
+          currentModel = gltf.scene;
+          baseScale = 0.04;
+          modelType = 'glassBottle';
+          setupModel(currentModel, baseScale, modelType);
         });
       }
-      else {
-        const model = scene.children[4];
+    }
 
-        const duration = 3000;
-        const wiggleFrequency = 100;
-        const baseScale = 0.1;
-        const wiggleAmplitude = 0.01;
-        const startTime = performance.now();
+    function setupModel(model, baseScale, modelType) {
+      // Position the model at the reticle
+      reticle.matrix.decompose(model.position, model.quaternion, model.scale);
 
-        let lastFrameTime = startTime;
+      // Scale the model
+      model.scale.set(baseScale, baseScale, baseScale);
 
-        function wiggle() {
-          const currentTime = performance.now();
-          const elapsedTime = currentTime - startTime;
+      // Add a custom property to identify the model
+      model.userData.type = modelType;
 
-          if (elapsedTime < duration) {
-            if (currentTime - lastFrameTime >= wiggleFrequency) {
-              lastFrameTime = currentTime;
-              const scaleFactor = baseScale +
-                wiggleAmplitude * Math.sin((elapsedTime / 1000) * wiggleFrequency * 2 * Math.PI);
-              model.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            }
+      // Add to scene
+      scene.add(model);
 
-            requestAnimationFrame(wiggle);
-          } else {
-            model.scale.set(baseScale, baseScale, baseScale);
-          }
+      // Update load flags
+      switch (modelType) {
+        case 'flask':
+          loadedFlask = true;
+          break;
+        case 'tube':
+          loadedTube = true;
+          break;
+        case 'glassBottle':
+          loadedGlassBottle = true;
+          break;
+      }
+
+      // Enable shadows
+      model.traverse(function (object) {
+        if (object.isMesh) object.castShadow = true;
+      });
+    }
+  }
+
+  // Add this new function to handle touch interactions
+  function onTouchMove(event) {
+    // Prevent default touch behavior
+    event.preventDefault();
+
+    // Check if we're in AR session
+    if (!renderer.xr.isPresenting) return;
+
+    // Get touch coordinates
+    const touch = event.touches[0];
+    const touchX = (touch.clientX / window.innerWidth) * 2 - 1;
+    const touchY = -(touch.clientY / window.innerHeight) * 2 + 1;
+
+    // Create raycaster
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(touchX, touchY);
+
+    // Set up the raycaster from the camera
+    raycaster.setFromCamera(mouse, camera);
+
+    // Check for intersections with models
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    if (intersects.length > 0) {
+      // Find the top-level model that was touched
+      const touchedObject = intersects[0].object.parent;
+
+      // Check if this is one of our loaded models
+      if (touchedObject.userData.type) {
+        const modelType = touchedObject.userData.type;
+
+        // Prevent multiple wiggles for the same model
+        if (!modelsTouched[modelType]) {
+          console.log('Touched', modelType);
+          applyWiggleEffect(touchedObject, touchedObject.scale.x);
+          modelsTouched[modelType] = true;
         }
-
-        wiggle();
       }
     }
   }
+
+  // Wiggle effect remains the same as in the previous example
+  function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 100, wiggleAmplitude = 0.01) {
+    const startTime = performance.now();
+    let lastFrameTime = startTime;
+
+    function wiggle() {
+      const currentTime = performance.now();
+      const elapsedTime = currentTime - startTime;
+
+      if (elapsedTime < duration) {
+        if (currentTime - lastFrameTime >= wiggleFrequency) {
+          lastFrameTime = currentTime;
+          const scaleFactor = baseScale +
+            wiggleAmplitude * Math.sin((elapsedTime / 1000) * wiggleFrequency * 2 * Math.PI);
+          model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+        }
+
+        requestAnimationFrame(wiggle);
+      } else {
+        model.scale.set(baseScale, baseScale, baseScale);
+      }
+    }
+
+    wiggle();
+  }
+
+  // Add touch event listener
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
 
   controller = renderer.xr.getController(0);
   controller.addEventListener('select', onSelect);
