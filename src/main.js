@@ -90,7 +90,7 @@ function setupModel(model, baseScale, modelType) {
   modelToAdd.userData.type = modelType;
 
   group.add(modelToAdd);
-  
+
   switch (modelType) {
     case 'flask':
       loadedFlask = true;
@@ -144,15 +144,18 @@ function onSelect(event) {
     const object = intersection.object.parent.parent.parent.parent;
     const objectScale = object.scale.x;
 
-    if (object.userData.type === 'flask' || object.userData.type === 'tube' || object.parent.userData.type === 'glassBottle') {
+    if (object.userData.type === 'flask' || object.userData.type === 'tube') {
       applyWiggleEffect(object, objectScale);
-    }
+    } else
+      if (object.parent.userData.type === 'glassBottle') {
+        applyWiggleEffect(object, objectScale, 3000, 100, 0.15);
+      }
   }
 
   controller.userData.targetRayMode = event.data.targetRayMode;
 }
 
-function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 100, wiggleAmplitude = 0.01) {
+function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 100, wiggleAmplitude = 0.02) {
   const startTime = performance.now();
   let lastFrameTime = startTime;
 
