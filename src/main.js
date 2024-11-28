@@ -42,9 +42,9 @@ controller.addEventListener('select', onSelect);
 scene.add(controller);
 
 // Interactive group setup
-const group = new InteractiveGroup(renderer, camera);
-group.listenToXRControllerEvents(controller);
-scene.add(group);
+const interactiveBottlesGroup = new InteractiveGroup(renderer, camera);
+interactiveBottlesGroup.listenToXRControllerEvents(controller);
+scene.add(interactiveBottlesGroup);
 
 // Reticle setup for AR placement
 reticle = new THREE.Mesh(
@@ -74,7 +74,7 @@ function getIntersections(controller) {
   raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
   raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-  const intersections = raycaster.intersectObjects(group.children, true);
+  const intersections = raycaster.intersectObjects(interactiveBottlesGroup.children, true);
 
   return intersections;
 }
@@ -89,7 +89,7 @@ function setupModel(model, baseScale, modelType) {
   modelToAdd.scale.set(baseScale, baseScale, baseScale);
   modelToAdd.userData.type = modelType;
 
-  group.add(modelToAdd);
+  interactiveBottlesGroup.add(modelToAdd);
 
   switch (modelType) {
     case 'flask':
