@@ -61,7 +61,16 @@ scene.add(reticle);
 // Window resize handling
 window.addEventListener('resize', onWindowResize);
 
-// ------------------------------- Functions -------------------------------
+// ------------------------------- Simon Game Setup -------------------------------
+
+let gamePattern = [];
+let userClickedPattern = [];
+let objectsTypes = ["blue-bottle", "green-bottle", "orange-bottle"];
+let showingSequence = false;
+let gameStarted = false;
+let winRound = 7;
+
+// ------------------------------- Controls Functions -------------------------------
 
 /**
  * Handles the window resize event
@@ -164,17 +173,34 @@ function onSelect(event) {
     const object = intersection.object.parent.parent.parent.parent;
     const objectScale = object.scale.x;
 
+    // Check the object type and apply the wiggle effect
+    // Also check the simon game pattern
     if (object.userData.type === 'blue-bottle') {
       applyWiggleEffect(object, objectScale);
+      if (!gameStarted) {
+        startOver();
+        gameStarted = true;
+      }
+      if (!showingSequence) {
+        userClickedPattern.push('blue-bottle');
+        checkAnswer(userClickedPattern.length - 1);
+      }
     } else
       if (object.parent.userData.type === 'green-bottle') {
-        applyWiggleEffect(object, objectScale, 3000, 100, 0.1);
+        applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
+        if (!showingSequence) {
+          userClickedPattern.push('green-bottle');
+          checkAnswer(userClickedPattern.length - 1);
+        }
       } else
         if (object.parent.userData.type === 'orange-bottle') {
-          applyWiggleEffect(object, objectScale, 3000, 100, 0.15);
+          applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
+          if (!showingSequence) {
+            userClickedPattern.push('orange-bottle');
+            checkAnswer(userClickedPattern.length - 1);
+          }
         }
   }
-
   controller.userData.targetRayMode = event.data.targetRayMode;
 }
 
@@ -187,7 +213,7 @@ function onSelect(event) {
  * @param {number} wiggleAmplitude The amplitude of the wiggle effect
  * @returns {void}
  */
-function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 100, wiggleAmplitude = 0.02) {
+function applyWiggleEffect(model, baseScale, duration = 1000, wiggleFrequency = 100, wiggleAmplitude = 0.02) {
   const startTime = performance.now();
   let lastFrameTime = startTime;
 
@@ -210,6 +236,67 @@ function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 
   }
 
   wiggle();
+}
+
+// ------------------------------- Simon Game Functions -------------------------------
+
+function nextSequence() {
+  let randomChosenObject = objectsTypes[Math.floor(Math.random() * 3)];
+  gamePattern.push(randomChosenObject);
+  console.log(gamePattern);
+  showSequence();
+}
+
+function checkAnswer(currentLevel) {
+  if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+    if (userClickedPattern.length === gamePattern.length) {
+      console.log("success");
+      userClickedPattern = [];
+      if (gamePattern.length === winRound) {
+        console.log("You win");
+        gameStarted = false;
+      } else {
+        setTimeout(function () {
+          nextSequence();
+        }, 3000);
+      }
+    }
+  } else {
+    setTimeout(function () {
+      // GAME OVER
+      console.log("wrong");
+      gameStarted = false;
+    }, 200);
+  }
+}
+
+function showSequence() {
+  showingSequence = true;
+  setTimeout(function () {
+    showingSequence = false;
+  }, 1000 * gamePattern.length);
+  for (let i = 0; i < gamePattern.length; i++) {
+    setTimeout(function () {
+      let object = interactiveBottlesGroup.children.find((child) => child.userData.type === gamePattern[i]).children[0];
+      let objectScale = object.scale.x;
+
+      if (gamePattern[i] === "blue-bottle") {
+        object = object.parent;
+        objectScale = object.scale.x;
+        applyWiggleEffect(object, objectScale);
+      } else if (gamePattern[i] === "green-bottle") {
+        applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
+      } else if (gamePattern[i] === "orange-bottle") {
+        applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
+      }
+    }, 1000 * i);
+  }
+}
+
+function startOver() {
+  gamePattern = [];
+  userClickedPattern = [];
+  nextSequence();
 }
 
 // ------------------------------- Main Loop -------------------------------
