@@ -26,34 +26,6 @@ function checkAnswer(currentLevel) {
     }
 }
 
-function animateObject(objectType) {
-    const duration = 3000;
-    const wiggleFrequency = 100;
-    const baseScale = 0.1;
-    const startTime = performance.now();
-    const model = scene.children[3 + objectsTypes.indexOf(objectType)];
-
-    let lastFrameTime = startTime;
-
-    function wiggle() {
-        const currentTime = performance.now();
-        const elapsedTime = currentTime - startTime;
-
-        if (elapsedTime < duration) {
-            if (currentTime - lastFrameTime >= wiggleFrequency) {
-                lastFrameTime = currentTime;
-                const scaleFactor = baseScale + Math.sin((elapsedTime / 1000));
-                model.scale.x = scaleFactor;
-                model.scale.y = scaleFactor;
-                model.scale.z = scaleFactor;
-            }
-            requestAnimationFrame(wiggle);
-        }
-    }
-
-    wiggle();
-}
-
 function clickObject(objectType) {
     if (showingSequence) {
         return;

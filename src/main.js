@@ -3,6 +3,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
 
+// ------------------------------- Setup -------------------------------
+
 let container;
 let camera, scene, renderer;
 let controller;
@@ -59,6 +61,12 @@ scene.add(reticle);
 // Window resize handling
 window.addEventListener('resize', onWindowResize);
 
+// ------------------------------- Functions -------------------------------
+
+/**
+ * Handles the window resize event
+ * @returns {void}
+ */
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -79,6 +87,13 @@ function getIntersections(controller) {
   return intersections;
 }
 
+/**
+ * Sets up the model to be placed in the scene
+ * @param {any} model The glb model to setup
+ * @param {number} baseScale The original scale of the model
+ * @param {string} modelType The name of the model
+ * @returns {void}
+ */
 function setupModel(model, baseScale, modelType) {
   // Position and add the model
   reticle.matrix.decompose(model.position, model.quaternion, model.scale);
@@ -104,6 +119,11 @@ function setupModel(model, baseScale, modelType) {
   }
 }
 
+/**
+ * Main function to handle the click of a user on the AR scene
+ * @param {Event} event The click event
+ * @returns {void}
+ */
 function onSelect(event) {
   if (reticle.visible) {
     // Load a model at the reticle position
@@ -158,6 +178,15 @@ function onSelect(event) {
   controller.userData.targetRayMode = event.data.targetRayMode;
 }
 
+/**
+ * Function to apply a wiggle effect to a model
+ * @param {any} model The model to apply the wiggle effect
+ * @param {number} baseScale The base scale of the model
+ * @param {number} duration The duration of the wiggle effect
+ * @param {number} wiggleFrequency The frequency of the wiggle effect
+ * @param {number} wiggleAmplitude The amplitude of the wiggle effect
+ * @returns {void}
+ */
 function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 100, wiggleAmplitude = 0.02) {
   const startTime = performance.now();
   let lastFrameTime = startTime;
@@ -183,6 +212,13 @@ function applyWiggleEffect(model, baseScale, duration = 3000, wiggleFrequency = 
   wiggle();
 }
 
+// ------------------------------- Main Loop -------------------------------
+
+/**
+ * Main function to animate the AR scene
+ * @param {any} timestamp 
+ * @param {any} frame 
+ */
 function animate(timestamp, frame) {
   if (frame) {
     const referenceSpace = renderer.xr.getReferenceSpace();
