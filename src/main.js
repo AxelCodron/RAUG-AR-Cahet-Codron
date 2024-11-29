@@ -9,7 +9,7 @@ let controller;
 let reticle;
 let hitTestSource = null;
 let hitTestSourceRequested = false;
-let loadedFlask, loadedTube, loadedGlassBottle = false;
+let loadedBlueBottle, loadedGreenBottle, loadedOrangeBottle = false;
 let raycaster = new THREE.Raycaster();
 
 const loader = new GLTFLoader().setPath('/RAUG-AR-Cahet-Codron/assets/models/');
@@ -92,14 +92,14 @@ function setupModel(model, baseScale, modelType) {
   interactiveBottlesGroup.add(modelToAdd);
 
   switch (modelType) {
-    case 'flask':
-      loadedFlask = true;
+    case 'blue-bottle':
+      loadedBlueBottle = true;
       break;
-    case 'tube':
-      loadedTube = true;
+    case 'green-bottle':
+      loadedGreenBottle = true;
       break;
-    case 'glassBottle':
-      loadedGlassBottle = true;
+    case 'orange-bottle':
+      loadedOrangeBottle = true;
       break;
   }
 }
@@ -111,25 +111,25 @@ function onSelect(event) {
     let baseScale;
     let modelType;
 
-    if (!loadedFlask) {
-      loader.load('flask.glb', (gltf) => {
+    if (!loadedBlueBottle) {
+      loader.load('blue-bottle.glb', (gltf) => {
         currentModel = gltf.scene;
         baseScale = 0.1;
-        modelType = 'flask';
+        modelType = 'blue-bottle';
         setupModel(currentModel, baseScale, modelType);
       });
-    } else if (!loadedTube) {
-      loader.load('tube.glb', (gltf) => {
+    } else if (!loadedGreenBottle) {
+      loader.load('green-bottle.glb', (gltf) => {
         currentModel = gltf.scene;
-        baseScale = 0.1;
-        modelType = 'tube';
+        baseScale = 40;
+        modelType = 'green-bottle';
         setupModel(currentModel, baseScale, modelType);
       });
-    } else if (!loadedGlassBottle) {
-      loader.load('glass-bottle.glb', (gltf) => {
+    } else if (!loadedOrangeBottle) {
+      loader.load('orange-bottle.glb', (gltf) => {
         currentModel = gltf.scene;
         baseScale = 0.04;
-        modelType = 'glassBottle';
+        modelType = 'orange-bottle';
         setupModel(currentModel, baseScale, modelType);
       });
     }
@@ -144,12 +144,15 @@ function onSelect(event) {
     const object = intersection.object.parent.parent.parent.parent;
     const objectScale = object.scale.x;
 
-    if (object.userData.type === 'flask' || object.userData.type === 'tube') {
+    if (object.userData.type === 'blue-bottle') {
       applyWiggleEffect(object, objectScale);
     } else
-      if (object.parent.userData.type === 'glassBottle') {
-        applyWiggleEffect(object, objectScale, 3000, 100, 0.15);
-      }
+      if (object.parent.userData.type === 'green-bottle') {
+        applyWiggleEffect(object, objectScale, 3000, 100, 0.1);
+      } else
+        if (object.parent.userData.type === 'orange-bottle') {
+          applyWiggleEffect(object, objectScale, 3000, 100, 0.15);
+        }
   }
 
   controller.userData.targetRayMode = event.data.targetRayMode;
