@@ -4,7 +4,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
 import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
 import { addListenerToCamera, addSoundToObject, playObjectSound } from './sounds';
-import { add } from 'three/webgpu';
 
 // ------------------------------- Setup -------------------------------
 
@@ -40,7 +39,8 @@ renderer.xr.enabled = true;
 container.appendChild(renderer.domElement);
 
 // Create AR button with hit-test feature
-document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+const arrButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] });
+document.body.appendChild(arrButton);
 
 // AR Controller setup
 controller = renderer.xr.getController(0);
@@ -97,11 +97,19 @@ const dialogs = {
 // Créer un conteneur HTML pour l'information
 const infoContainer = document.getElementById('info-container');
 infoContainer.innerHTML = dialogs['intro'].content;
+infoContainer.style.visibility = 'hidden';
 
-const mesh = new HTMLMesh(infoContainer);
-mesh.position.z = - 0.8;
+const infoMesh = new HTMLMesh(infoContainer);
+infoMesh.position.z = - 0.8;
+infoMesh.visible = false;
 
-interactiveBottlesGroup.add(mesh);
+interactiveBottlesGroup.add(infoMesh);
+
+arrButton.addEventListener('click', function () {
+  console.log('AR Button clicked');
+  infoMesh.visible = true;
+  infoContainer.style.visibility = 'visible';
+});
 
 // ------------------------------- Simon Game Setup -------------------------------
 
@@ -256,7 +264,7 @@ function onSelect(event) {
   }
 
   if (displayedRules && !gameStarted) {
-    infoContainer.style.display = 'none';
+    infoMesh.visible = false;
     startOver();
     gameStarted = true;
   }
@@ -327,7 +335,7 @@ function checkAnswer(currentLevel) {
         console.log("You win");
         playObjectSound('win');
         gameRestarted = true;
-        infoContainer.style.display = 'block';
+        infoMesh.visible = true;
         infoContainer.innerHTML = dialogs['win'].content;
       } else {
         setTimeout(function () {
@@ -341,7 +349,7 @@ function checkAnswer(currentLevel) {
       console.log("wrong");
       playObjectSound('game-over');
       gameRestarted = true;
-      infoContainer.style.display = 'block';
+      infoMesh.visible = true;
       infoContainer.innerHTML = dialogs['lose'].content;
     }, 200);
   }
@@ -409,7 +417,7 @@ function animate(timestamp, frame) {
     if (hitTestSource) {
       const hitTestResults = frame.getHitTestResults(hitTestSource);
 
-      if (hitTestResults.length) {
+      if (hitTestResults.length && !loadedOrangeBottle) {
         const hit = hitTestResults[0];
 
         reticle.visible = true;
