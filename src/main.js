@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
+import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
 
 // ------------------------------- Setup -------------------------------
 
@@ -13,6 +14,7 @@ let hitTestSource = null;
 let hitTestSourceRequested = false;
 let loadedBlueBottle, loadedGreenBottle, loadedOrangeBottle = false;
 let raycaster = new THREE.Raycaster();
+let displayedRules = false;
 
 const loader = new GLTFLoader().setPath('/RAUG-AR-Cahet-Codron/assets/models/');
 
@@ -61,6 +63,41 @@ scene.add(reticle);
 // Window resize handling
 window.addEventListener('resize', onWindowResize);
 
+// ------------------------------------- GUI -------------------------------------
+
+const dialogs = {
+  'intro': {
+    content: `Hello scientist!</br>You must find the right combination of bottles</br>to create the remedy against the Covid 31!.</br>Begin by moving a bit to scan your surroundings.</br>When a circle appears, click on the screen to</br>place a bottle on the circle's location.`,
+  },
+  'blue-bottle': {
+    content: `The blue bottle is the first ingredient of</br>the remedy.</br>It's known for its calming properties.</br>Place the second bottle now!`
+  },
+  'green-bottle': {
+    content: `The green bottle is the second ingredient of</br>the remedy.</br>It's known for its healing properties.</br>Place the last bottle now!`
+  },
+  'orange-bottle': {
+    content: `The orange bottle is the last ingredient of</br>the remedy.</br>It's known for its KOOL properties.`
+  },
+  'game-description': {
+    content: `You have now to create the remedy!</br>Look at the bottles and remember the sequence.</br>Then, click on the bottles in the same order to</br>create the remedy!</br>Reach a sequence of 7 to win.</br>Good luck!`
+  },
+  'lose': {
+    content: `Game Over!</br>You have failed to create the remedy against</br>the Covid 31!</br>Humanity is doomed and the world is lost :)`
+  },
+  'win': {
+    content: `Congratulations!</br>You have created the remedy against the</br>Covid 31!`
+  },
+}
+
+// Créer un conteneur HTML pour l'information
+const infoContainer = document.getElementById('info-container');
+infoContainer.innerHTML = dialogs['intro'].content;
+
+const mesh = new HTMLMesh(infoContainer);
+mesh.position.z = - 0.8;
+
+interactiveBottlesGroup.add(mesh);
+
 // ------------------------------- Simon Game Setup -------------------------------
 
 let gamePattern = [];
@@ -68,6 +105,7 @@ let userClickedPattern = [];
 let objectsTypes = ["blue-bottle", "green-bottle", "orange-bottle"];
 let showingSequence = false;
 let gameStarted = false;
+let gameRestarted = false;
 let winRound = 7;
 
 // ------------------------------- Controls Functions -------------------------------
@@ -146,6 +184,7 @@ function onSelect(event) {
         baseScale = 0.1;
         modelType = 'blue-bottle';
         setupModel(currentModel, baseScale, modelType);
+        infoContainer.innerHTML = dialogs['blue-bottle'].content;
       });
     } else if (!loadedGreenBottle) {
       loader.load('green-bottle.glb', (gltf) => {
@@ -153,6 +192,7 @@ function onSelect(event) {
         baseScale = 40;
         modelType = 'green-bottle';
         setupModel(currentModel, baseScale, modelType);
+        infoContainer.innerHTML = dialogs['green-bottle'].content;
       });
     } else if (!loadedOrangeBottle) {
       loader.load('orange-bottle.glb', (gltf) => {
@@ -160,47 +200,67 @@ function onSelect(event) {
         baseScale = 0.04;
         modelType = 'orange-bottle';
         setupModel(currentModel, baseScale, modelType);
+        infoContainer.innerHTML = dialogs['orange-bottle'].content;
       });
     }
   }
 
-  const controller = event.target;
-  const intersections = getIntersections(controller);
+  if (displayedRules && gameStarted && !gameRestarted) {
+    const controller = event.target;
+    const intersections = getIntersections(controller);
 
-  if (intersections.length > 0) {
-    const intersection = intersections[0];
+    if (intersections.length > 0) {
+      const intersection = intersections[0];
 
-    const object = intersection.object.parent.parent.parent.parent;
-    const objectScale = object.scale.x;
+      const object = intersection.object.parent.parent.parent.parent;
+      const objectScale = object.scale.x;
 
-    // Check the object type and apply the wiggle effect
-    // Also check the simon game pattern
-    if (object.userData.type === 'blue-bottle') {
-      applyWiggleEffect(object, objectScale);
-      if (!gameStarted) {
-        startOver();
-        gameStarted = true;
-      }
-      if (!showingSequence) {
-        userClickedPattern.push('blue-bottle');
-        checkAnswer(userClickedPattern.length - 1);
-      }
-    } else
-      if (object.parent.userData.type === 'green-bottle') {
-        applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
+      // Check the object type and apply the wiggle effect
+      // Also check the simon game pattern
+      if (object.userData.type === 'blue-bottle') {
+        applyWiggleEffect(object, objectScale);
+        if (!gameStarted) {
+          startOver();
+          gameStarted = true;
+        }
         if (!showingSequence) {
-          userClickedPattern.push('green-bottle');
+          userClickedPattern.push('blue-bottle');
           checkAnswer(userClickedPattern.length - 1);
         }
       } else
-        if (object.parent.userData.type === 'orange-bottle') {
-          applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
+        if (object.parent.userData.type === 'green-bottle') {
+          applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
           if (!showingSequence) {
-            userClickedPattern.push('orange-bottle');
+            userClickedPattern.push('green-bottle');
             checkAnswer(userClickedPattern.length - 1);
           }
-        }
+        } else
+          if (object.parent.userData.type === 'orange-bottle') {
+            applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
+            if (!showingSequence) {
+              userClickedPattern.push('orange-bottle');
+              checkAnswer(userClickedPattern.length - 1);
+            }
+          }
+    }
   }
+
+  if (displayedRules && !gameStarted) {
+    infoContainer.style.display = 'none';
+    startOver();
+    gameStarted = true;
+  }
+
+  if (gameRestarted) {
+    gameRestarted = false;
+    gameStarted = false;
+  }
+
+  if (loadedOrangeBottle && !displayedRules) {
+    infoContainer.innerHTML = dialogs['game-description'].content;
+    displayedRules = true;
+  }
+
   controller.userData.targetRayMode = event.data.targetRayMode;
 }
 
@@ -254,7 +314,9 @@ function checkAnswer(currentLevel) {
       userClickedPattern = [];
       if (gamePattern.length === winRound) {
         console.log("You win");
-        gameStarted = false;
+        gameRestarted = true;
+        infoContainer.style.display = 'block';
+        infoContainer.innerHTML = dialogs['win'].content;
       } else {
         setTimeout(function () {
           nextSequence();
@@ -265,7 +327,9 @@ function checkAnswer(currentLevel) {
     setTimeout(function () {
       // GAME OVER
       console.log("wrong");
-      gameStarted = false;
+      gameRestarted = true;
+      infoContainer.style.display = 'block';
+      infoContainer.innerHTML = dialogs['lose'].content;
     }, 200);
   }
 }
