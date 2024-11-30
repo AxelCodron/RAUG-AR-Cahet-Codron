@@ -70,9 +70,10 @@ addListenerToCamera(camera);
 
 // ------------------------------------- GUI -------------------------------------
 
+// Dialogs for the user
 const dialogs = {
   'intro': {
-    content: `Hello scientist!</br>You must find the right combination of bottles</br>to create the remedy against the Covid 31!.</br>Begin by moving a bit to scan your surroundings.</br>When a circle appears, click on the screen to</br>place a bottle on the circle's location.`,
+    content: `Hello scientist!</br>You must find the right combination of bottles</br>to create the remedy against the Covid 31!</br>Begin by moving a bit to scan your surroundings.</br>When a circle appears, click on the screen to</br>place a bottle on the circle's location.`,
   },
   'blue-bottle': {
     content: `The blue bottle is the first ingredient of</br>the remedy.</br>It's known for its calming properties.</br>Place the second bottle now!`
@@ -94,7 +95,7 @@ const dialogs = {
   },
 }
 
-// Créer un conteneur HTML pour l'information
+// Html container for the dialogs
 const infoContainer = document.getElementById('info-container');
 infoContainer.innerHTML = dialogs['intro'].content;
 infoContainer.style.visibility = 'hidden';
@@ -103,8 +104,9 @@ const infoMesh = new HTMLMesh(infoContainer);
 infoMesh.position.z = - 0.8;
 infoMesh.visible = false;
 
-interactiveBottlesGroup.add(infoMesh);
+scene.add(infoMesh);
 
+// AR Button event listener to display the dialog after the AR button is clicked
 arrButton.addEventListener('click', function () {
   console.log('AR Button clicked');
   infoMesh.visible = true;
@@ -134,6 +136,11 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+/**
+ * Gets the intersections of the controller with the interactive objects
+ * @param {any} controller Target event controller to get the intersections
+ * @returns the intersections of the controller with the interactive objects
+ */
 function getIntersections(controller) {
   const tempMatrix = new THREE.Matrix4();
 
@@ -318,6 +325,9 @@ function applyWiggleEffect(model, baseScale, duration = 1000, wiggleFrequency = 
 
 // ------------------------------- Simon Game Functions -------------------------------
 
+/**
+ * Function to start the Simon game's next sequence
+ */
 function nextSequence() {
   let randomChosenObject = objectsTypes[Math.floor(Math.random() * 3)];
   gamePattern.push(randomChosenObject);
@@ -325,6 +335,10 @@ function nextSequence() {
   showSequence();
 }
 
+/**
+ * Checks if the user's answer is correct after every click
+ * @param {number} currentLevel The number of sequence level
+ */
 function checkAnswer(currentLevel) {
   if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
     if (userClickedPattern.length === gamePattern.length) {
@@ -355,6 +369,9 @@ function checkAnswer(currentLevel) {
   }
 }
 
+/**
+ * Function to show the sequence of the game
+ */
 function showSequence() {
   showingSequence = true;
   setTimeout(function () {
@@ -381,6 +398,9 @@ function showSequence() {
   }
 }
 
+/**
+ * Function to start the game
+ */
 function startOver() {
   gamePattern = [];
   userClickedPattern = [];

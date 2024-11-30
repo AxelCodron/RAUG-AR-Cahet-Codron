@@ -60,14 +60,27 @@ const sounds = {
 
 // ------------------- Functions -------------------
 
+/**
+ * Adds the audio listener to the scene with the camera
+ * @param {any} camera The scene camera
+ */
 function addListenerToCamera(camera) {
     camera.add(listener);
 }
 
+/**
+ * Adds a sound to an object
+ * @param {any} object The object to add the sound to
+ * @param {any} sound The name of the sound to add
+ */
 function addSoundToObject(object, sound) {
     object.add(sounds[sound]);
 }
 
+/**
+ * Plays a sound
+ * @param {any} sound The name of the sound to play
+ */
 function playObjectSound(sound) {
     sounds[sound].play();
 }
