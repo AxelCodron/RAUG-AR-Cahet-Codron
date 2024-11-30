@@ -3,6 +3,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { InteractiveGroup } from 'three/addons/interactive/InteractiveGroup.js';
 import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
+import { addListenerToCamera, addSoundToObject, playObjectSound } from './sounds';
+import { add } from 'three/webgpu';
 
 // ------------------------------- Setup -------------------------------
 
@@ -62,6 +64,9 @@ scene.add(reticle);
 
 // Window resize handling
 window.addEventListener('resize', onWindowResize);
+
+// Sounds setup
+addListenerToCamera(camera);
 
 // ------------------------------------- GUI -------------------------------------
 
@@ -185,6 +190,8 @@ function onSelect(event) {
         modelType = 'blue-bottle';
         setupModel(currentModel, baseScale, modelType);
         infoContainer.innerHTML = dialogs['blue-bottle'].content;
+        addSoundToObject(currentModel, 'blue-bottle');
+        playObjectSound('blue-bottle');
       });
     } else if (!loadedGreenBottle) {
       loader.load('green-bottle.glb', (gltf) => {
@@ -193,6 +200,8 @@ function onSelect(event) {
         modelType = 'green-bottle';
         setupModel(currentModel, baseScale, modelType);
         infoContainer.innerHTML = dialogs['green-bottle'].content;
+        addSoundToObject(currentModel, 'green-bottle');
+        playObjectSound('green-bottle');
       });
     } else if (!loadedOrangeBottle) {
       loader.load('orange-bottle.glb', (gltf) => {
@@ -201,6 +210,8 @@ function onSelect(event) {
         modelType = 'orange-bottle';
         setupModel(currentModel, baseScale, modelType);
         infoContainer.innerHTML = dialogs['orange-bottle'].content;
+        addSoundToObject(currentModel, 'orange-bottle');
+        playObjectSound('orange-bottle');
       });
     }
   }
@@ -219,11 +230,8 @@ function onSelect(event) {
       // Also check the simon game pattern
       if (object.userData.type === 'blue-bottle') {
         applyWiggleEffect(object, objectScale);
-        if (!gameStarted) {
-          startOver();
-          gameStarted = true;
-        }
         if (!showingSequence) {
+          playObjectSound('blue-bottle');
           userClickedPattern.push('blue-bottle');
           checkAnswer(userClickedPattern.length - 1);
         }
@@ -231,6 +239,7 @@ function onSelect(event) {
         if (object.parent.userData.type === 'green-bottle') {
           applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
           if (!showingSequence) {
+            playObjectSound('green-bottle');
             userClickedPattern.push('green-bottle');
             checkAnswer(userClickedPattern.length - 1);
           }
@@ -238,6 +247,7 @@ function onSelect(event) {
           if (object.parent.userData.type === 'orange-bottle') {
             applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
             if (!showingSequence) {
+              playObjectSound('orange-bottle');
               userClickedPattern.push('orange-bottle');
               checkAnswer(userClickedPattern.length - 1);
             }
@@ -312,8 +322,10 @@ function checkAnswer(currentLevel) {
     if (userClickedPattern.length === gamePattern.length) {
       console.log("success");
       userClickedPattern = [];
+      playObjectSound('good-sequence');
       if (gamePattern.length === winRound) {
         console.log("You win");
+        playObjectSound('win');
         gameRestarted = true;
         infoContainer.style.display = 'block';
         infoContainer.innerHTML = dialogs['win'].content;
@@ -327,6 +339,7 @@ function checkAnswer(currentLevel) {
     setTimeout(function () {
       // GAME OVER
       console.log("wrong");
+      playObjectSound('game-over');
       gameRestarted = true;
       infoContainer.style.display = 'block';
       infoContainer.innerHTML = dialogs['lose'].content;
@@ -348,10 +361,13 @@ function showSequence() {
         object = object.parent;
         objectScale = object.scale.x;
         applyWiggleEffect(object, objectScale);
+        playObjectSound('blue-bottle');
       } else if (gamePattern[i] === "green-bottle") {
         applyWiggleEffect(object, objectScale, 1000, 100, 0.1);
+        playObjectSound('green-bottle');
       } else if (gamePattern[i] === "orange-bottle") {
         applyWiggleEffect(object, objectScale, 1000, 100, 0.15);
+        playObjectSound('orange-bottle');
       }
     }, 1000 * i);
   }
