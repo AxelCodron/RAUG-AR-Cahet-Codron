@@ -20,7 +20,6 @@ Use your phone to scan your surroundings and play the game! You will only have t
 ### Models
 lowpoly flask: https://skfb.ly/69spZ  
 lowpoly glass bottle: https://skfb.ly/6ToPr  
-lowpoly tube: https://skfb.ly/69sHp  
 lowpoly potion: https://skfb.ly/oJQot
 
 ### Sound Design
